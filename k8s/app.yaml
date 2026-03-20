@@ -1,0 +1,47 @@
+---
+# 1. The Service (Exposing your app to your local browser)
+apiVersion: v1
+kind: Service
+metadata:
+  name: actor-api-service
+spec:
+  type: NodePort # This allows us to access it externally on our laptop
+  ports:
+    - port: 8081
+      targetPort: 8081
+      nodePort: 30081 # You will access the app via localhost:30081
+  selector:
+    app: actor-api
+---
+# 2. The Deployment (The Pod running your Spring Boot code)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actor-api-deployment
+spec:
+  replicas: 2 # Let's run 2 instances of your app for High Availability!
+  selector:
+    matchLabels:
+      app: actor-api
+  template:
+    metadata:
+      labels:
+        app: actor-api
+    spec:
+      containers:
+        - name: actor-api
+          image: crud-app:latest # The Docker image we built in Phase 2
+          imagePullPolicy: IfNotPresent # Tells K8s to use your local image
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: mysql-service # Points to the K8s MySQL service name!
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: tekboot
+            - name: DB_USER
+              value: root
+            - name: DB_PASSWORD
+              value: root

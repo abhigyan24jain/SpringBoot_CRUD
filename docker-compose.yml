@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  # 1. The Database Service
+  mysql-db:
+    image: mysql:8.0
+    container_name: crud-mysql
+    environment:
+      MYSQL_DATABASE: tekboot
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+
+  # 2. Your Spring Boot Service
+  actor-api:
+    build: . # Tells Docker to look for the Dockerfile in this directory
+    container_name: crud-app
+    ports:
+      - "8081:8081"
+    environment:
+      # Injecting the exact environment variables we set up in Phase 1
+      - DB_HOST=mysql-db # Points to the service name above, Docker handles the DNS!
+      - DB_PORT=3306
+      - DB_NAME=tekboot
+      - DB_USER=root
+      - DB_PASSWORD=root
+    depends_on:
+      - mysql-db # Ensures MySQL starts first
